@@ -11,6 +11,7 @@ import {Http} from "@angular/http";
 import {Observable} from "rxjs/Observable";
 import {AppSettings} from "../../core/configuration/app";
 import {extractData, extractError} from "../../core/helpers/http";
+import {IBootData} from "../../store/models/IBootApp";
 
 
 
@@ -35,14 +36,24 @@ export class AuthService {
             .catch(extractError);
     }
 
-    getUserFromApi(): Observable<User> {
-        const url = `${AppSettings.API_ENDPOINT}me`;
-
+    getUserFromApi(userId?: number): Observable<User> {
+        const url = AppSettings.API_ENDPOINT + (typeof userId !== 'undefined' && userId) ? `users/${userId}` : 'me';
         return this.http.get(url)
             .map(extractData)
             .map((res: any) => res.data)
             .catch((err: any) => {
                 console.log(err);
+                return Observable.throw(err);
+            });
+    }
+
+    bootFromApi(): Observable<IBootData> {
+        const url = `${AppSettings.API_ENDPOINT}boot`;
+        return this.http.get(url)
+            .map(extractData)
+            .map((res: any) => res)
+            .catch((err: any) => {
+                console.log('Boot data error',err);
                 return Observable.throw(err);
             });
     }

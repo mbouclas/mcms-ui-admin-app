@@ -14,6 +14,9 @@ import { environment } from '../../../environments/environment';
  */
 
 import * as fromLayout from './layout';
+import * as fromLang from './lang';
+import * as fromSettings from './settings';
+import * as fromItemSelector from './itemSelector';
 import {routerReducer, RouterReducerState} from "@ngrx/router-store";
 
 
@@ -24,6 +27,9 @@ import {routerReducer, RouterReducerState} from "@ngrx/router-store";
 export interface State {
     routerReducer: RouterReducerState,
     layout: fromLayout.State;
+    lang: fromLang.State;
+    settings: fromSettings.State;
+    itemSelector: fromItemSelector.State
 }
 
 /**
@@ -34,6 +40,9 @@ export interface State {
 export const reducers: ActionReducerMap<State> = {
     routerReducer,
     layout: fromLayout.reducer,
+    lang: fromLang.reducer,
+    settings: fromSettings.reducer,
+    itemSelector: fromItemSelector.reducer
 };
 
 
@@ -50,6 +59,9 @@ export const metaReducers: ActionReducer<any, any>[] = !environment.production
  * Layout Reducers
  */
 export const getLayoutState = createFeatureSelector<fromLayout.State>('layout');
+export const getLangState = fromLang.getLangState;
+export const getSettingsState = fromSettings.getSettingsState;
+export const getItemSelectorState = fromItemSelector.getItemSelectorState;
 
 export const getShowSidenav = createSelector(
     getLayoutState,

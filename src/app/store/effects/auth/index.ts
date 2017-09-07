@@ -9,17 +9,47 @@ import {Effect, Actions} from '@ngrx/effects';
 import { of } from 'rxjs/observable/of';
 import { AuthService } from '../../../auth/services/auth.service';
 import * as Auth from '../../actions/auth';
+import * as AclActions from '../../actions/auth/acl';
+import * as SettingsActions from '../../actions/settings';
+import * as ItemSelectorActions from '../../actions/itemSelector';
+import * as LangActions from '../../actions/lang';
 import * as fromAuth from "../../reducers/auth";
 import "rxjs/add/operator/mergeMap";
 import {Cache} from "../../../core/services/Cache";
 import "rxjs/add/operator/switchMap";
-import {Action, Store} from "@ngrx/store";
+import {Store} from "@ngrx/store";
 import "rxjs/add/operator/startWith";
 import {User} from "../../models/User";
+import {IBootData} from "../../models/IBootApp";
+import {LangService} from "../../../core/services/Lang.service";
 
 
 @Injectable()
 export class AuthEffects {
+    @Effect()
+    boot$ = this.actions$
+        .ofType<Auth.BootAction>(Auth.BOOT)
+        .switchMap((query) => {
+            return this.authService
+                .bootFromApi()
+                .map((response: IBootData) => {
+                    this.cache.set('user', response.user);
+                    this.store.dispatch(new AclActions.AclSetPermissionsAction(response.ACL.permissions));
+                    this.store.dispatch(new AclActions.AclSetRolesAction(response.ACL.roles));
+                    // Lang Stuff
+                    this.store.dispatch(new LangActions.LangSetLocaleAction(response.currentLocale));
+                    this.store.dispatch(new LangActions.LangSetTranslationsAction(response.translations.en));
+                    this.store.dispatch(new LangActions.LangSetLocalesAction(this.langService.localesToArray(response.locales)));
+                    // System settings
+                    this.store.dispatch(new SettingsActions.SettingsSetAction(response.Settings));
+                    // Item Selector
+                    this.store.dispatch(new ItemSelectorActions.ItemSelectorSetAction(response.ItemSelector.connectors));
+
+                    return new Auth.SetUserAction(response.user);
+                })
+                .catch(error => of(new Auth.LoginFailure(error)));
+        });
+
     @Effect()
     fetch$ = this.actions$
         .ofType<Auth.GetUserAction>(Auth.GET_USER)
@@ -42,6 +72,8 @@ export class AuthEffects {
                 .loginFromApi(auth)
                 .map(token => {
                     this.store.dispatch(new Auth.StoreTokenAction(token));
+                    // Boot the app
+                    this.store.dispatch(new Auth.BootAction());
                     return new Auth.LoginSuccess(token);
                 })
                 .catch(error => of(new Auth.LoginFailure(error)))
@@ -85,8 +117,7 @@ export class AuthEffects {
         private authService: AuthService,
         private router: Router,
         private cache: Cache,
-        private store: Store<fromAuth.State>
-    ) {
-
-    }
+        private store: Store<fromAuth.State>,
+        private langService: LangService
+    ) {}
 }

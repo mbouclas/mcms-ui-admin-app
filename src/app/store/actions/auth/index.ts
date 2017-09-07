@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 import { User, Authenticate } from '../../models/User';
 
+export const BOOT = '[Auth] Boot';
 export const LOGIN = '[Auth] Login';
 export const LOGOUT = '[Auth] Logout';
 export const LOGIN_SUCCESS = '[Auth] Login Success';
@@ -11,6 +12,12 @@ export const GET_TOKEN = '[Auth] GET Token';
 export const SET_TOKEN = '[Auth] SET Token';
 export const GET_USER = '[Auth] GET User';
 export const SET_USER = '[Auth] SET User';
+
+export class BootAction implements Action {
+    readonly type = BOOT;
+
+    constructor() {}
+}
 
 export class Login implements Action {
     readonly type = LOGIN;
@@ -68,6 +75,7 @@ export class SetUserAction implements Action {
 }
 
 export type Actions =
+    | BootAction
     | Login
     | LoginSuccess
     | LoginFailure

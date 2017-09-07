@@ -1,16 +1,20 @@
 import {ChangeDetectionStrategy, Component, OnInit} from "@angular/core";
 import * as fromRoot from '../../store/reducers';
-import * as fromAuth from '../../store/reducers/auth';
+import * as fromLang from '../../store/reducers/lang';
 import * as authActions from '../../store/actions/auth';
 import {Store} from "@ngrx/store";
 import {AuthService} from "../../auth/services/auth.service";
 import {Cache} from "../services/Cache";
+import {LangService} from "../services/Lang.service";
+import {Observable} from "rxjs/Observable";
+import {ILocale} from "../../store/models/ILang";
 
 @Component({
     selector: 'mcms-app',
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div>
+            
             <router-outlet></router-outlet>
         </div>
     `,
@@ -22,7 +26,12 @@ export class AppComponent implements OnInit{
     // refreshData$: Observable<boolean>;
 
 
-    constructor(private store: Store<fromRoot.State>, private authService: AuthService, private cache: Cache) {
+
+    constructor(private store: Store<fromRoot.State>,
+                private authService: AuthService,
+                private cache: Cache) {
+
+
 
         /**
          * Selectors can be applied with the `select` operator which passes the state
@@ -43,7 +52,10 @@ export class AppComponent implements OnInit{
         this.authService.setLoginState();
         const token = this.cache.get('token');
         if (token) {
-            setTimeout(() => {this.authService.setUser();});
+            // We need to wait for the stupid authService to get an instance of the Http class as
+            // we can't inject it there cause of a cyclic dependency bug
+            setTimeout(() => {this.store.dispatch(new authActions.BootAction);});
+
         }
     }
 
